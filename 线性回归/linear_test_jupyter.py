@@ -259,9 +259,57 @@ plt.axis([0, 80, 0, 3.3])
 
 print("\n模块7：多项式回归的过拟合风险")
 plt.close()
-
+# 特征变化越复杂越过拟合
 polynomial_reg = Pipeline([('poly_features', PolynomialFeatures(degree=25, include_bias=False)),
                            ('lin_reg', LinearRegression())])
 plot_learning_curves(polynomial_reg, X, y)
 plt.axis([0, 80, 0, 5])
+# plt.show()
+
+print("\n模块8：正则化防止模型太拟合，岭回归、Lasso")
+plt.close()
+# 对权重参数进行惩罚，让权重参数尽可能平滑一些，有两种不同的方法来进行正则化惩罚:
+# 岭回归和Lasso回归都是在原有的损失函数基础上 加上 对权重参数的计算。一个是所有参数平方和，一个是所有参数绝对值之和。
+# ||y - Xw||^2_2 + alpha * ||w||^2_2 罚力度越大，alpha值越大的时候，得到的决策方程越平稳
+# 博客参考：http://www.360doc.com/content/19/1224/13/68068867_881784593.shtml
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+
+np.random.seed(42)
+m = 20
+X = 3 * np.random.rand(m, 1)
+y = 0.5 * X + np.random.randn(m, 1) / 1.5 + 1
+X_new = np.linspace(0, 3, 100).reshape(100, 1)
+
+
+def plot_model(model_class, polynomial, alphas, **model_kargs):
+    for alpha, color in zip(alphas, ('b--', 'g--', 'r--')):
+        model = model_class(alpha, **model_kargs)
+        if polynomial:
+            model = Pipeline([('step1_poly_features', PolynomialFeatures(degree=10, include_bias=False)),
+                              ('step2_std', StandardScaler()),
+                              ('step3_reg', model)])
+
+        model.fit(X, y)
+        y_new_predict = model.predict(X_new)
+        lw = 2 if alpha > 0 else 1
+        plt.plot(X_new, y_new_predict, color, linewidth=lw, label='alpha = {}'.format(alpha))
+    # 画出原始数据分布
+    plt.plot(X, y, 'b.', linewidth=3)
+    plt.legend()
+
+
+print("岭回归实验图")
+plt.figure(figsize=(14, 6))
+plt.subplot(121)
+plot_model(Ridge, polynomial=False, alphas=(0, 10, 100))
+plt.subplot(122)
+plot_model(Ridge, polynomial=True, alphas=(0, 10 ** -5, 1))
+plt.show()
+print("Lasso回归实验图")
+plt.figure(figsize=(14, 6))
+plt.subplot(121)
+plot_model(Lasso, polynomial=False, alphas=(0, 0.1, 1))
+plt.subplot(122)
+plot_model(Lasso, polynomial=True, alphas=(0, 10 ** -1, 1))
 plt.show()
