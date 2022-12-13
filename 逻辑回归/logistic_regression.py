@@ -39,6 +39,48 @@ class LogisticRegression:
             current_initial_theta = np.copy(self.theta[label_index].reshape(num_features, 1))
             # 训练集的的Y。不过全都是转换成 0/1这种数据，来做训练数据集的Y
             current_labels = (self.labels == unique_label).astype(float)
+            (current_theta, cost_history) = LogisticRegression.gradient_descent(self.data, current_labels,
+                                                                                current_initial_theta, max_iterations)
+
+            self.theta[label_index] = current_theta.T
+            cost_histories.append(cost_history)
+
+        return self.theta, cost_histories
+
+    @staticmethod
+    def gradient_descent(data, labels, current_initial_theta, max_iterations):
+        """
+        流水线式的执行梯度下降方法
+        :param data:
+        :param labels:
+        :param current_initial_theta:
+        :param max_iterations:
+        :return: 计算后的theta、cost集合
+        """
+        cost_history = []
+        num_features = data.shape[1]
+        result = minimize(
+            # 要优化的目标：
+            lambda current_theta: LogisticRegression.cost_function(data, labels,
+                                                                   current_theta.reshape(num_features, 1)),
+            # 初始化的权重参数
+            current_initial_theta,
+            # 选择优化策略
+            method='CG',
+            # 梯度下降迭代计算公式
+            # jac = lambda current_theta:LogisticRegression.gradient_step(data,labels,current_initial_theta.reshape(num_features,1)),
+            jac=lambda current_theta: LogisticRegression.gradient_step(data, labels,
+                                                                       current_theta.reshape(num_features, 1)),
+            # 记录结果
+            callback=lambda current_theta: cost_history.append(
+                LogisticRegression.cost_function(data, labels, current_theta.reshape((num_features, 1)))),
+            # 迭代次数
+            options={'maxiter': max_iterations}
+        )
+        if not result.success:
+            raise ArithmeticError('Can not minimize cost function' + result.message)
+        optimized_theta = result.x.reshape(num_features, 1)
+        return optimized_theta, cost_history
 
     @staticmethod
     def cost_function(data, labels, theta):
