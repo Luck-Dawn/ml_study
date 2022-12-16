@@ -11,6 +11,7 @@ class KMeans:
         center_ids = KMeans.centroids_init(self.data, self.num_cluster)
         # 2.开始训练
         num_example = self.data.shape[0]
+        # 保存每个样本点到中心点最近距离的索引集合
         closest_type_list = np.empty((num_example, 1))
         for _ in range(max_iter):
             # 3.得到当前每一个样本点到K个中心点的距离，找到最近的
@@ -38,7 +39,7 @@ class KMeans:
         # 外层遍历每个元素
         for example_index in range(num_examples):
             distance_list = np.zeros((num_center, 1))
-            # 内存遍历每个类别
+            # 内层遍历每个类别
             for center_index in range(num_center):
                 distance_diff = data[example_index, :] - center_ids[center_index, :]
                 distance_list[center_index] = np.sum(distance_diff ** 2)

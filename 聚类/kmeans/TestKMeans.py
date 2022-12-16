@@ -13,6 +13,7 @@ y_axis = 'petal_width'
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 for iris_type in iris_types:
+    # data[x_axis][data['class'] == iris_type] ，第一个中括号取某一列，第二个中括号取那些行，里面有个过滤条件：data['class'] == iris_type取本类的
     plt.scatter(data[x_axis][data['class'] == iris_type], data[y_axis][data['class'] == iris_type], label=iris_type)
 plt.title('label known')
 plt.legend()
